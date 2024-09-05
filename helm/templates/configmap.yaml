@@ -1,0 +1,47 @@
+# templates/jom-be-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jom-be-config
+  namespace: jom
+data:
+  JOM_BE_ADDRESS: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jom-fe-config
+  namespace: jom
+data:
+  STATIC_BUCKET_ADDRESS: {{ .Values.staticBucketAddress }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: jom
+data:
+  default.conf: |
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://jom-fe-svc; # Use the service name defined in Kubernetes
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
+        location /jom_be/ {
+            proxy_pass http://jom-be-svc; # Backend service
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+        }
+    }
+    

@@ -1,0 +1,28 @@
+# templates/jom-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jom-batch-role
+  namespace: jom
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "patch"]
+---
+# templates/jom-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jom-rolebinding
+  namespace: jom
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: jom
+roleRef:
+  kind: Role
+  name: jom-batch-role
+  apiGroup: rbac.authorization.k8s.io

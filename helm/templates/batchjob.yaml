@@ -1,0 +1,30 @@
+# # Updates configmap with
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: update-jom-be-config
+#   namespace: jom
+#   annotations:
+#     "helm.sh/hook": post-install,post-upgrade
+#     "helm.sh/hook-delete-policy": hook-succeeded
+# spec:
+#   template:
+#     spec:
+#       serviceAccountName: default
+#       containers:
+#       - name: update-configmap
+#         image: bitnami/kubectl:latest
+#         command:
+#         - /bin/sh
+#         - -c
+#         - |
+#           set -e
+#           while true; do
+#             LOAD_BALANCER_ADDRESS=$(kubectl get svc jom-be-svc -n jom -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+#             if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+#               kubectl patch configmap jom-be-config -n jom --type merge -p "{\"data\":{\"JOM_BE_ADDRESS\":\"$LOAD_BALANCER_ADDRESS\"}}"
+#               break
+#             fi
+#             sleep 5
+#           done
+#       restartPolicy: OnFailure
